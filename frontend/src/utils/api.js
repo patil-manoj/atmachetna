@@ -57,6 +57,7 @@ export const appointmentsAPI = {
   getById: (id) => api.get(`/appointments/${id}`),
   create: (data) => api.post('/appointments', data),
   update: (id, data) => api.put(`/appointments/${id}`, data),
+  updateStatus: (id, status) => api.patch(`/appointments/${id}/status`, { status }),
   confirm: (id, data) => api.patch(`/appointments/${id}/confirm`, data),
   complete: (id, data) => api.patch(`/appointments/${id}/complete`, data),
   delete: (id) => api.delete(`/appointments/${id}`),

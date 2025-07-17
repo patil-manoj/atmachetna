@@ -43,10 +43,13 @@ function TabFixed({ value, label, isActive, onClick }) {
 
 // Updated Tabs component
 function TabsFixed({ value, onChange, children }) {
+  // Ensure children is an array
+  const childrenArray = Array.isArray(children) ? children : [children].filter(Boolean);
+  
   return (
     <div className="border-b border-gray-200">
       <nav className="flex space-x-8">
-        {children?.map((child, index) => (
+        {childrenArray.map((child, index) => (
           <TabFixed
             key={index}
             value={child.props.value}

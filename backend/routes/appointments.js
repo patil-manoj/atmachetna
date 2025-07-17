@@ -344,4 +344,52 @@ router.patch('/:id/complete', protect, async (req, res) => {
   }
 });
 
+/**
+ * @desc    Update appointment status
+ * @route   PATCH /api/appointments/:id/status
+ * @access  Private (Admin/Counsellor only)
+ */
+router.patch('/:id/status', protect, authorize('admin', 'counsellor'), async (req, res) => {
+  try {
+    const { status } = req.body;
+    
+    // Validate status
+    const validStatuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be one of: pending, confirmed, completed, cancelled'
+      });
+    }
+
+    const appointment = await Appointment.findById(req.params.id)
+      .populate('student', 'personalInfo contactInfo')
+      .populate('counsellor', 'name email');
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Appointment not found'
+      });
+    }
+
+    appointment.status = status;
+    appointment.lastModified = new Date();
+
+    await appointment.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Appointment status updated to ${status}`,
+      data: { appointment }
+    });
+  } catch (error) {
+    console.error('Update appointment status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating appointment status'
+    });
+  }
+});
+
 export default router;
