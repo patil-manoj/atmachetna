@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import Admin from '../models/Admin.js';
+import Student from '../models/Student.js';
 
 /**
  * Middleware to protect routes - requires valid JWT token
@@ -24,17 +25,25 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      // Get admin from database
-      const admin = await Admin.findById(decoded.id).select('-password');
+      let user;
       
-      if (!admin) {
+      // Check if it's a student or admin based on role
+      if (decoded.role === 'student') {
+        user = await Student.findById(decoded.id).select('-password');
+      } else {
+        user = await Admin.findById(decoded.id).select('-password');
+      }
+      
+      if (!user) {
         return res.status(401).json({
           success: false,
-          message: 'No admin found with this token'
+          message: 'No user found with this token'
         });
       }
 
-      req.admin = admin;
+      // Set both req.user (new) and req.admin (backward compatibility)
+      req.user = user;
+      req.admin = user; // Keep for backward compatibility
       next();
     } catch (error) {
       return res.status(401).json({
@@ -51,11 +60,13 @@ const protect = async (req, res, next) => {
 };
 
 /**
- * Middleware to authorize specific roles (currently only admin role exists)
+ * Middleware to authorize specific roles
  */
 const authorize = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.admin.role)) {
+    const userRole = req.user.role || (req.user.personalInfo ? 'student' : 'admin');
+    
+    if (!roles.includes(userRole)) {
       return res.status(403).json({
         success: false,
         message: 'User role is not authorized to access this route'

@@ -45,6 +45,7 @@ export const authAPI = {
 export const studentsAPI = {
   getAll: (params) => api.get('/students', { params }),
   getById: (id) => api.get(`/students/${id}`),
+  getMe: () => api.get('/students/me'), // For student to get their own profile
   create: (data) => api.post('/students', data),
   update: (id, data) => api.put(`/students/${id}`, data),
   delete: (id) => api.delete(`/students/${id}`),

@@ -9,7 +9,8 @@ function AuthPage() {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    userType: 'admin' // Default to admin
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -64,7 +65,7 @@ function AuthPage() {
     }
 
     // Login
-    const result = await login(formData.email, formData.password)
+    const result = await login(formData.email, formData.password, formData.userType)
     
     if (!result.success) {
       setError(result.error)
@@ -86,7 +87,8 @@ function AuthPage() {
       name: '',
       email: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      userType: 'admin'
     })
   }
 
@@ -277,6 +279,32 @@ function AuthPage() {
                   />
                 </div>
               </div>
+
+              {/* User Type Field - Only for login */}
+              {isLogin && (
+                <div className="space-y-2">
+                  <label htmlFor="userType" className="block text-sm font-semibold text-gray-700">
+                    Login As
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="userType"
+                      name="userType"
+                      className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white shadow-sm appearance-none"
+                      value={formData.userType}
+                      onChange={handleChange}
+                    >
+                      <option value="admin">Administrator / Counsellor</option>
+                      <option value="student">Student</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Password Field */}
               <div className="space-y-2">

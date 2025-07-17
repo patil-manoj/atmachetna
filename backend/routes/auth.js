@@ -2,18 +2,19 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Admin from '../models/Admin.js';
+import Student from '../models/Student.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
 /**
- * @desc    Login admin
+ * @desc    Login admin or student
  * @route   POST /api/auth/login
  * @access  Public
  */
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, userType = 'admin' } = req.body;
 
     // Validation
     if (!email || !password) {
@@ -23,18 +24,34 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Check for admin
-    const admin = await Admin.findOne({ email }).select('+password');
+    let user;
+    let Model;
+    
+    if (userType === 'student') {
+      Model = Student;
+      user = await Student.findOne({ 'personalInfo.email': email }).select('+password');
+    } else {
+      Model = Admin;
+      user = await Admin.findOne({ email }).select('+password');
+    }
 
-    if (!admin) {
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
 
+    // Check if password exists (for students who might not have passwords set)
+    if (!user.password) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account not set up for login. Please contact administrator.'
+      });
+    }
+
     // Check if password matches
-    const isMatch = await bcrypt.compare(password, admin.password);
+    const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(401).json({
@@ -43,11 +60,11 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Create token
+    // Create token payload
     const payload = {
-      id: admin._id,
-      email: admin.email,
-      role: admin.role
+      id: user._id,
+      email: userType === 'student' ? user.personalInfo.email : user.email,
+      role: user.role || userType
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -55,21 +72,37 @@ router.post('/login', async (req, res) => {
     });
 
     // Update last login
-    admin.lastLogin = new Date();
-    await admin.save();
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Prepare user data based on type
+    let userData;
+    if (userType === 'student') {
+      userData = {
+        id: user._id,
+        name: user.fullName,
+        email: user.personalInfo.email,
+        role: 'student',
+        studentId: user.studentId,
+        lastLogin: user.lastLogin
+      };
+    } else {
+      userData = {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        lastLogin: user.lastLogin
+      };
+    }
 
     res.status(200).json({
       success: true,
       message: 'Login successful',
       data: {
         token,
-        admin: {
-          id: admin._id,
-          name: admin.name,
-          email: admin.email,
-          role: admin.role,
-          lastLogin: admin.lastLogin
-        }
+        user: userData,
+        userType
       }
     });
   } catch (error) {
@@ -159,24 +192,51 @@ router.post('/signup', async (req, res) => {
 });
 
 /**
- * @desc    Get current logged in admin
+ * @desc    Get current logged in user (admin or student)
  * @route   GET /api/auth/me
  * @access  Private
  */
 router.get('/me', protect, async (req, res) => {
   try {
-    const admin = await Admin.findById(req.admin.id);
+    let user;
+    let userData;
+
+    if (req.user.role === 'student') {
+      user = await Student.findById(req.user.id);
+      if (user) {
+        userData = {
+          id: user._id,
+          name: user.fullName,
+          email: user.personalInfo.email,
+          role: 'student',
+          studentId: user.studentId,
+          lastLogin: user.lastLogin
+        };
+      }
+    } else {
+      user = await Admin.findById(req.user.id);
+      if (user) {
+        userData = {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          lastLogin: user.lastLogin
+        };
+      }
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
 
     res.status(200).json({
       success: true,
       data: {
-        admin: {
-          id: admin._id,
-          name: admin.name,
-          email: admin.email,
-          role: admin.role,
-          lastLogin: admin.lastLogin
-        }
+        user: userData
       }
     });
   } catch (error) {

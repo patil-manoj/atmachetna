@@ -29,7 +29,7 @@ export function AuthProvider({ children }) {
   const verifyToken = async () => {
     try {
       const response = await authAPI.me()
-      setUser(response.data.data.admin)
+      setUser(response.data.data.user) // Changed from admin to user
     } catch (error) {
       localStorage.removeItem('token')
     } finally {
@@ -37,12 +37,12 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const login = async (email, password) => {
+  const login = async (email, password, userType = 'admin') => {
     try {
-      const response = await authAPI.login({ email, password })
-      const { token, admin } = response.data.data
+      const response = await authAPI.login({ email, password, userType })
+      const { token, user } = response.data.data
       localStorage.setItem('token', token)
-      setUser(admin)
+      setUser(user)
       return { success: true }
     } catch (error) {
       return { 
@@ -52,12 +52,12 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const signup = async (name, email, password) => {
+  const signup = async (name, email, password, userType = 'admin') => {
     try {
-      const response = await authAPI.signup({ name, email, password })
-      const { token, admin } = response.data.data
+      const response = await authAPI.signup({ name, email, password, userType })
+      const { token, user } = response.data.data
       localStorage.setItem('token', token)
-      setUser(admin)
+      setUser(user)
       return { success: true }
     } catch (error) {
       return { 

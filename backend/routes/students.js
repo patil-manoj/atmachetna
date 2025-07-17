@@ -1,15 +1,53 @@
 import express from 'express';
 import Student from '../models/Student.js';
-import { protect } from '../middleware/auth.js';
+import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
 /**
- * @desc    Get all students
+ * @desc    Get student's own profile
+ * @route   GET /api/students/me
+ * @access  Private (Student only)
+ */
+router.get('/me', protect, async (req, res) => {
+  try {
+    if (req.user.role !== 'student') {
+      return res.status(403).json({
+        success: false,
+        message: 'This endpoint is only accessible to students'
+      });
+    }
+
+    const student = await Student.findById(req.user.id)
+      .populate('counselingInfo.counselingNotes.counsellor', 'name')
+      .lean();
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student profile not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: { student }
+    });
+  } catch (error) {
+    console.error('Get student profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching student profile'
+    });
+  }
+});
+
+/**
+ * @desc    Get all students (Admin/Counsellor only)
  * @route   GET /api/students
  * @access  Private
  */
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, authorize('admin', 'counsellor'), async (req, res) => {
   try {
     const {
       page = 1,

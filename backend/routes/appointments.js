@@ -1,12 +1,12 @@
 import express from 'express';
 import Appointment from '../models/Appointment.js';
 import Student from '../models/Student.js';
-import { protect } from '../middleware/auth.js';
+import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
 /**
- * @desc    Get all appointments
+ * @desc    Get all appointments (admin/counsellor) or student's own appointments
  * @route   GET /api/appointments
  * @access  Private
  */
@@ -26,9 +26,14 @@ router.get('/', protect, async (req, res) => {
     // Build query
     let query = {};
 
+    // If user is a student, only show their appointments
+    if (req.user.role === 'student') {
+      query.student = req.user.id;
+    }
+
     if (status) query.status = status;
-    if (type) query.type = type;
-    if (priority) query.priority = priority;
+    if (type) query['appointmentDetails.type'] = type;
+    if (priority) query['appointmentDetails.priority'] = priority;
     
     // Date filtering
     if (date) {
@@ -36,7 +41,7 @@ router.get('/', protect, async (req, res) => {
       const endDate = new Date(date);
       endDate.setDate(endDate.getDate() + 1);
       
-      query.date = {
+      query['appointmentDetails.requestedDate'] = {
         $gte: startDate,
         $lt: endDate
       };
@@ -56,7 +61,8 @@ router.get('/', protect, async (req, res) => {
       .sort(sortOptions)
       .skip(skip)
       .limit(limitNum)
-      .populate('student', 'name email phone studentId')
+      .populate('student', 'personalInfo.firstName personalInfo.lastName personalInfo.email personalInfo.phone studentId')
+      .populate('counsellor', 'name email')
       .lean();
 
     const total = await Appointment.countDocuments(query);

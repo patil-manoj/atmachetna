@@ -1,26 +1,81 @@
 import express from 'express';
 import Student from '../models/Student.js';
 import Appointment from '../models/Appointment.js';
-import { protect } from '../middleware/auth.js';
+import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
 /**
- * @desc    Get dashboard statistics
+ * @desc    Get dashboard statistics (admin) or student-specific stats
  * @route   GET /api/stats/dashboard
  * @access  Private
  */
 router.get('/dashboard', protect, async (req, res) => {
   try {
+    if (req.user.role === 'student') {
+      // Student-specific stats
+      const studentId = req.user.id;
+      
+      // Student's appointments
+      const totalAppointments = await Appointment.countDocuments({ student: studentId });
+      const completedAppointments = await Appointment.countDocuments({ 
+        student: studentId, 
+        status: 'completed' 
+      });
+      const upcomingAppointments = await Appointment.countDocuments({ 
+        student: studentId, 
+        status: 'confirmed',
+        'appointmentDetails.requestedDate': { $gte: new Date() }
+      });
+      const pendingAppointments = await Appointment.countDocuments({ 
+        student: studentId, 
+        status: 'pending' 
+      });
+
+      // Last appointment
+      const lastAppointment = await Appointment.findOne({ 
+        student: studentId, 
+        status: 'completed' 
+      })
+        .sort({ 'appointmentDetails.requestedDate': -1 })
+        .populate('counsellor', 'name')
+        .lean();
+
+      // Next appointment
+      const nextAppointment = await Appointment.findOne({ 
+        student: studentId, 
+        status: 'confirmed',
+        'appointmentDetails.requestedDate': { $gte: new Date() }
+      })
+        .sort({ 'appointmentDetails.requestedDate': 1 })
+        .populate('counsellor', 'name')
+        .lean();
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          overview: {
+            totalAppointments,
+            completedAppointments,
+            upcomingAppointments,
+            pendingAppointments,
+            lastAppointment,
+            nextAppointment
+          }
+        }
+      });
+    }
+
+    // Admin/Counsellor dashboard stats
     // Total students
-    const totalStudents = await Student.countDocuments();
-    const activeStudents = await Student.countDocuments({ status: 'active' });
+    const totalStudents = await Student.countDocuments({ isActive: true });
+    const activeStudents = await Student.countDocuments({ status: 'Active' });
     
     // Total appointments
     const totalAppointments = await Appointment.countDocuments();
-    const pendingAppointments = await Appointment.countDocuments({ status: 'pending' });
-    const confirmedAppointments = await Appointment.countDocuments({ status: 'confirmed' });
-    const completedAppointments = await Appointment.countDocuments({ status: 'completed' });
+    const pendingAppointments = await Appointment.countDocuments({ status: 'Pending' });
+    const confirmedAppointments = await Appointment.countDocuments({ status: 'Confirmed' });
+    const completedAppointments = await Appointment.countDocuments({ status: 'Completed' });
     
     // Today's appointments
     const today = new Date();
@@ -28,14 +83,16 @@ router.get('/dashboard', protect, async (req, res) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     
     const todaysAppointments = await Appointment.countDocuments({
-      date: {
+      'appointmentDetails.requestedDate': {
         $gte: today.setHours(0, 0, 0, 0),
         $lt: tomorrow.setHours(0, 0, 0, 0)
       }
     });
 
     // High priority students
-    const highPriorityStudents = await Student.countDocuments({ priority: 'high' });
+    const highPriorityStudents = await Student.countDocuments({ 
+      'counselingInfo.riskLevel': 'High' 
+    });
 
     // Recent appointments (last 7 days)
     const weekAgo = new Date();

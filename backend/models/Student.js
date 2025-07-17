@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const studentSchema = new mongoose.Schema({
   personalInfo: {
@@ -104,6 +105,26 @@ const studentSchema = new mongoose.Schema({
       email: String
     }
   },
+  // Authentication fields for student login
+  password: {
+    type: String,
+    minlength: [6, 'Password must be at least 6 characters'],
+    select: false // Don't return password by default
+  },
+  studentId: {
+    type: String,
+    unique: true,
+    sparse: true // Allows multiple documents without studentId
+  },
+  role: {
+    type: String,
+    default: 'student'
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  lastLogin: Date,
   status: {
     type: String,
     enum: ['Active', 'Inactive', 'Graduated', 'Transferred'],
@@ -177,5 +198,20 @@ studentSchema.statics.getRecentRegistrations = function(days = 30) {
 // Ensure virtual fields are serialized
 studentSchema.set('toJSON', { virtuals: true });
 studentSchema.set('toObject', { virtuals: true });
+
+// Hash password before saving
+studentSchema.pre('save', async function(next) {
+  if (!this.isModified('password') || !this.password) {
+    return next();
+  }
+
+  try {
+    const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default mongoose.model('Student', studentSchema);
