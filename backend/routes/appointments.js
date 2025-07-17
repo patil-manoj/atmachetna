@@ -128,7 +128,7 @@ router.post('/', protect, async (req, res) => {
   try {
     const appointmentData = {
       ...req.body,
-      createdBy: req.admin.id
+      createdBy: req.user.id
     };
 
     const appointment = await Appointment.create(appointmentData);
@@ -274,7 +274,7 @@ router.patch('/:id/confirm', protect, async (req, res) => {
         confirmedDate: confirmedDate || appointment.date,
         confirmedTime: confirmedTime || appointment.time,
         notes: notes || appointment.notes,
-        confirmedBy: req.admin.id,
+        confirmedBy: req.user.id,
         confirmedAt: new Date()
       },
       { new: true }
@@ -317,7 +317,7 @@ router.patch('/:id/complete', protect, async (req, res) => {
         remarks,
         followUpDate,
         resolution,
-        completedBy: req.admin.id,
+        completedBy: req.user.id,
         completedAt: new Date()
       },
       { new: true }

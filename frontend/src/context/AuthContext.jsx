@@ -39,10 +39,8 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      // Determine user type based on email
-      // Admin emails: admin@atmachetna.com, counsellor@atmachetna.com, or any email ending with @atmachetna.com for admin domain
-      const adminEmails = ['admin@atmachetna.com', 'counsellor@atmachetna.com'];
-      const isAdminEmail = adminEmails.includes(email.toLowerCase()) || email.toLowerCase().endsWith('@atmachetna.com');
+      // Determine user type based on email domain
+      const isAdminEmail = email.toLowerCase().endsWith('@atmachetna.com');
       const userType = isAdminEmail ? 'admin' : 'student';
       
       const response = await authAPI.login({ email, password, userType })
@@ -60,9 +58,8 @@ export function AuthProvider({ children }) {
 
   const signup = async (name, email, password) => {
     try {
-      // Determine user type based on email (same logic as login)
-      const adminEmails = ['admin@atmachetna.com', 'counsellor@atmachetna.com'];
-      const isAdminEmail = adminEmails.includes(email.toLowerCase()) || email.toLowerCase().endsWith('@atmachetna.com');
+      // Determine user type based on email domain
+      const isAdminEmail = email.toLowerCase().endsWith('@atmachetna.com');
       const userType = isAdminEmail ? 'admin' : 'student';
       
       const response = await authAPI.signup({ name, email, password, userType })

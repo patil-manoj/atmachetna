@@ -25,13 +25,10 @@ router.post('/login', async (req, res) => {
     }
 
     let user;
-    let Model;
     
     if (userType === 'student') {
-      Model = Student;
       user = await Student.findOne({ 'personalInfo.email': email }).select('+password');
     } else {
-      Model = Admin;
       user = await Admin.findOne({ email }).select('+password');
     }
 
@@ -51,7 +48,20 @@ router.post('/login', async (req, res) => {
     }
 
     // Check if password matches
-    const isMatch = await bcrypt.compare(password, user.password);
+    let isMatch;
+    if (userType === 'student') {
+      isMatch = await bcrypt.compare(password, user.password);
+    } else {
+      // Use Admin model's comparePassword method for better security
+      try {
+        isMatch = await user.comparePassword(password);
+      } catch (error) {
+        return res.status(401).json({
+          success: false,
+          message: error.message
+        });
+      }
+    }
 
     if (!isMatch) {
       return res.status(401).json({
@@ -71,16 +81,18 @@ router.post('/login', async (req, res) => {
       expiresIn: process.env.JWT_EXPIRES_IN || '7d'
     });
 
-    // Update last login
-    user.lastLogin = new Date();
-    await user.save();
+    // Update last login (only for students, admin is handled in comparePassword)
+    if (userType === 'student') {
+      user.lastLogin = new Date();
+      await user.save();
+    }
 
     // Prepare user data based on type
     let userData;
     if (userType === 'student') {
       userData = {
         id: user._id,
-        name: user.fullName,
+        name: `${user.personalInfo.firstName} ${user.personalInfo.lastName}`,
         email: user.personalInfo.email,
         role: 'student',
         studentId: user.studentId,
@@ -206,7 +218,7 @@ router.get('/me', protect, async (req, res) => {
       if (user) {
         userData = {
           id: user._id,
-          name: user.fullName,
+          name: `${user.personalInfo.firstName} ${user.personalInfo.lastName}`,
           email: user.personalInfo.email,
           role: 'student',
           studentId: user.studentId,
@@ -276,11 +288,35 @@ router.put('/change-password', protect, async (req, res) => {
       });
     }
 
-    // Get admin with password
-    const admin = await Admin.findById(req.admin.id).select('+password');
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long'
+      });
+    }
+
+    // Get user with password based on role
+    let user;
+    if (req.user.role === 'student') {
+      user = await Student.findById(req.user.id).select('+password');
+    } else {
+      user = await Admin.findById(req.user.id).select('+password');
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
 
     // Check current password
-    const isMatch = await bcrypt.compare(currentPassword, admin.password);
+    let isMatch;
+    if (req.user.role === 'student') {
+      isMatch = await bcrypt.compare(currentPassword, user.password);
+    } else {
+      isMatch = await user.comparePassword(currentPassword);
+    }
 
     if (!isMatch) {
       return res.status(400).json({
@@ -289,11 +325,9 @@ router.put('/change-password', protect, async (req, res) => {
       });
     }
 
-    // Hash new password
-    const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12);
-    admin.password = await bcrypt.hash(newPassword, salt);
-
-    await admin.save();
+    // Update password (will be hashed by pre-save middleware)
+    user.password = newPassword;
+    await user.save();
 
     res.status(200).json({
       success: true,

@@ -128,7 +128,7 @@ router.post('/appointment-confirmation', protect, async (req, res) => {
     await Appointment.findByIdAndUpdate(appointmentId, {
       emailSent: true,
       emailSentAt: new Date(),
-      emailSentBy: req.admin.id
+      emailSentBy: req.user.id
     });
 
     res.status(200).json({
@@ -222,7 +222,7 @@ router.post('/follow-up', protect, async (req, res) => {
             subject: emailSubject,
             message,
             sentAt: new Date(),
-            sentBy: req.admin.id
+            sentBy: req.user.id
           }
         }
       });

@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import Admin from '../models/Admin.js';
 
 /**
@@ -12,18 +11,11 @@ export const initializeAdmin = async () => {
     if (!adminExists) {
       console.log('🔧 No admin found. Creating default admin...');
       
-      // Hash the default password
-      const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
-      const hashedPassword = await bcrypt.hash(
-        process.env.ADMIN_PASSWORD || 'admin123',
-        saltRounds
-      );
-      
-      // Create default admin
+      // Create default admin - password will be hashed by pre-save middleware
       const defaultAdmin = new Admin({
         name: process.env.ADMIN_NAME || 'Counsellor Admin',
-        email: process.env.ADMIN_EMAIL || 'counsellor@atmachethana.com',
-        password: hashedPassword,
+        email: process.env.ADMIN_EMAIL || 'counsellor@atmachetna.com',
+        password: process.env.ADMIN_PASSWORD || 'admin123',
         role: 'admin',
         isActive: true,
         createdAt: new Date()

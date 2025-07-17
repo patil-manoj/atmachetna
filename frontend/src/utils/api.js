@@ -27,7 +27,10 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      // Only redirect if not already on auth page
+      if (window.location.pathname !== '/auth') {
+        window.location.href = '/auth'
+      }
     }
     return Promise.reject(error)
   }

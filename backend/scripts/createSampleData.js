@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import Student from '../models/Student.js';
 import Admin from '../models/Admin.js';
 import Appointment from '../models/Appointment.js';
-import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -30,11 +29,10 @@ const createSampleData = async () => {
     // Don't clear admins, but ensure we have at least one
     const adminCount = await Admin.countDocuments();
     if (adminCount === 0) {
-      const hashedPassword = await bcrypt.hash('admin123', 12);
       await Admin.create({
         name: 'Admin User',
         email: 'admin@atmachetna.com',
-        password: hashedPassword,
+        password: 'admin123', // Plain text - will be hashed by pre-save middleware
         role: 'admin'
       });
       console.log('Created default admin user');
@@ -78,7 +76,7 @@ const createSampleData = async () => {
             email: 'jane.doe@parent.com'
           }
         },
-        password: await bcrypt.hash('student123', 12),
+        password: 'student123', // Plain text - will be hashed by pre-save middleware
         studentId: 'STU001',
         role: 'student',
         status: 'Active'
@@ -116,7 +114,7 @@ const createSampleData = async () => {
             email: 'robert.smith@parent.com'
           }
         },
-        password: await bcrypt.hash('student123', 12),
+        password: 'student123', // Plain text - will be hashed by pre-save middleware
         studentId: 'STU002',
         role: 'student',
         status: 'Active'
@@ -154,7 +152,7 @@ const createSampleData = async () => {
             email: 'sarah.johnson@parent.com'
           }
         },
-        password: await bcrypt.hash('student123', 12),
+        password: 'student123', // Plain text - will be hashed by pre-save middleware
         studentId: 'STU003',
         role: 'student',
         status: 'Active'
