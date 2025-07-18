@@ -317,48 +317,48 @@ function UpdateProfile({ isOpen, onClose, onSuccess }) {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Current Class *
+                    Current Year *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="academicInfo.currentClass"
                     required
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     value={formData.academicInfo.currentClass}
                     onChange={handleChange}
-                  />
+                  >
+                    <option value="">Select Year</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    School/Institution *
+                    Engineering Branch *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="academicInfo.school"
                     required
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     value={formData.academicInfo.school}
                     onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Board
-                  </label>
-                  <select
-                    name="academicInfo.board"
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    value={formData.academicInfo.board}
-                    onChange={handleChange}
                   >
-                    <option value="">Select Board</option>
-                    <option value="CBSE">CBSE</option>
-                    <option value="ICSE">ICSE</option>
-                    <option value="State Board">State Board</option>
-                    <option value="International">International</option>
-                    <option value="Other">Other</option>
+                    <option value="">Select Branch</option>
+                    <option value="Civil Engineering">Civil Engineering</option>
+                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    <option value="Electrical & Electronics Engineering">Electrical & Electronics Engineering</option>
+                    <option value="Electronics & Communication Engineering">Electronics & Communication Engineering</option>
+                    <option value="Industrial Engineering & Management">Industrial Engineering & Management</option>
+                    <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                    <option value="Bio Technology">Bio Technology</option>
+                    <option value="Chemical Engineering">Chemical Engineering</option>
+                    <option value="Artificial Intelligence and Machine Learning">Artificial Intelligence and Machine Learning</option>
+                    <option value="Computer Science and Engineering (Data Science)">Computer Science and Engineering (Data Science)</option>
+                    <option value="Computer Science and Engineering (IoT & Cyber Security)">Computer Science and Engineering (IoT & Cyber Security)</option>
+                    <option value="Artificial Intelligence (AI) and Data Science">Artificial Intelligence (AI) and Data Science</option>
+                    <option value="Computer Science and Business Systems">Computer Science and Business Systems</option>
                   </select>
                 </div>
 
@@ -369,7 +369,7 @@ function UpdateProfile({ isOpen, onClose, onSuccess }) {
                   <input
                     type="text"
                     name="academicInfo.subjects"
-                    placeholder="e.g., Mathematics, Physics, Chemistry"
+                    placeholder="e.g., Mathematics, Physics, Programming, Data Structures"
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     value={formData.academicInfo.subjects.join(', ')}
                     onChange={handleChange}
@@ -383,7 +383,7 @@ function UpdateProfile({ isOpen, onClose, onSuccess }) {
                   <input
                     type="text"
                     name="academicInfo.interests"
-                    placeholder="e.g., Technology, Science, Music"
+                    placeholder="e.g., Programming, Machine Learning, Robotics, Innovation"
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     value={formData.academicInfo.interests.join(', ')}
                     onChange={handleChange}

@@ -264,6 +264,12 @@ function StudentsList() {
                                 <span>{personalInfo.phone}</span>
                               </>
                             )}
+                            {student.usn && (
+                              <>
+                                <span className="mx-2">•</span>
+                                <span className="font-mono text-blue-600">USN: {student.usn}</span>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>

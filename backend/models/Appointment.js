@@ -9,7 +9,7 @@ const appointmentSchema = new mongoose.Schema({
   counsellor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Admin',
-    required: [true, 'Counsellor reference is required']
+    required: false // Allow null initially, will be assigned by admin
   },
   appointmentDetails: {
     requestedDate: {

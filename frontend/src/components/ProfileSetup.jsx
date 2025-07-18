@@ -25,8 +25,8 @@ function ProfileSetup({ onComplete, onClose }) {
     
     // Academic Info
     currentClass: '',
-    school: '',
-    board: '',
+    school: '', // This will store the engineering branch
+    board: 'VTU', // Default board for BMSCE
     subjects: [],
     interests: [],
     careerGoals: '',
@@ -70,7 +70,7 @@ function ProfileSetup({ onComplete, onClose }) {
         return formData.firstName && formData.lastName && formData.phone && 
                formData.dateOfBirth && formData.gender
       case 2:
-        return formData.currentClass && formData.school
+        return formData.currentClass && formData.school // school field now stores the branch
       case 3:
         return formData.parentName && formData.relationship && formData.parentPhone
       default:
@@ -116,8 +116,9 @@ function ProfileSetup({ onComplete, onClose }) {
         },
         academicInfo: {
           currentClass: formData.currentClass,
-          school: formData.school,
-          board: formData.board || 'Other',
+          school: 'B.M.S. College of Engineering (BMSCE)', // Set BMSCE as default
+          branch: formData.school, // Store the selected branch
+          board: 'VTU', // Set VTU as default for BMSCE
           subjects: formData.subjects,
           interests: formData.interests,
           careerGoals: formData.careerGoals
@@ -146,17 +147,21 @@ function ProfileSetup({ onComplete, onClose }) {
   }
 
   const subjects = [
-    'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science',
-    'English', 'Hindi', 'Social Studies', 'Economics', 'Accountancy',
-    'Business Studies', 'Psychology', 'Political Science', 'History',
-    'Geography', 'Art', 'Music', 'Physical Education'
+    'Mathematics', 'Physics', 'Chemistry', 'Computer Science', 'Electronics',
+    'Engineering Graphics', 'Workshop Practice', 'Engineering Mechanics', 'Material Science', 
+    'Thermodynamics', 'Circuit Analysis', 'Digital Electronics', 'Programming',
+    'Data Structures', 'Algorithms', 'Software Engineering', 'Database Management', 
+    'Computer Networks', 'Operating Systems', 'Machine Learning', 'Artificial Intelligence',
+    'Web Development', 'Mobile App Development', 'IoT', 'Cyber Security', 'Blockchain'
   ]
 
   const interests = [
-    'Technology', 'Science', 'Arts', 'Music', 'Sports', 'Reading',
-    'Writing', 'Photography', 'Dance', 'Drama', 'Coding', 'Gaming',
-    'Research', 'Medicine', 'Engineering', 'Teaching', 'Business',
-    'Environment', 'Travel', 'Social Work'
+    'Programming', 'Software Development', 'Web Development', 'Mobile App Development',
+    'Data Science', 'Machine Learning', 'Artificial Intelligence', 'Deep Learning',
+    'Robotics', 'Electronics', 'Hardware Design', 'IoT', 'Cyber Security', 'Blockchain',
+    'Cloud Computing', 'DevOps', 'Research', 'Innovation', 'Entrepreneurship', 
+    'Project Management', 'Product Design', 'UI/UX Design', 'Game Development',
+    'Automation', 'Renewable Energy', 'Sustainable Technology'
   ]
 
   return (
@@ -347,53 +352,53 @@ function ProfileSetup({ onComplete, onClose }) {
             {/* Step 2: Academic Information */}
             {step === 2 && (
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Academic Information</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Academic Information</h3>
+                <p className="text-sm text-gray-600 mb-4">B.M.S. College of Engineering (BMSCE) Student Profile</p>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Current Class *
+                    Current Year *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="currentClass"
                     required
-                    placeholder="e.g., 10th Grade, 12th Grade, 1st Year College"
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     value={formData.currentClass}
                     onChange={handleChange}
-                  />
+                  >
+                    <option value="">Select Year</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    School/Institution Name *
+                    Engineering Branch *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="school"
                     required
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     value={formData.school}
                     onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Board
-                  </label>
-                  <select
-                    name="board"
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    value={formData.board}
-                    onChange={handleChange}
                   >
-                    <option value="">Select Board</option>
-                    <option value="CBSE">CBSE</option>
-                    <option value="ICSE">ICSE</option>
-                    <option value="State Board">State Board</option>
-                    <option value="International">International</option>
-                    <option value="Other">Other</option>
+                    <option value="">Select Branch</option>
+                    <option value="Civil Engineering">Civil Engineering</option>
+                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    <option value="Electrical & Electronics Engineering">Electrical & Electronics Engineering</option>
+                    <option value="Electronics & Communication Engineering">Electronics & Communication Engineering</option>
+                    <option value="Industrial Engineering & Management">Industrial Engineering & Management</option>
+                    <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                    <option value="Bio Technology">Bio Technology</option>
+                    <option value="Chemical Engineering">Chemical Engineering</option>
+                    <option value="Artificial Intelligence and Machine Learning">Artificial Intelligence and Machine Learning</option>
+                    <option value="Computer Science and Engineering (Data Science)">Computer Science and Engineering (Data Science)</option>
+                    <option value="Computer Science and Engineering (Internet of Things and Cyber Security including Blockchain Technology)">Computer Science and Engineering (IoT & Cyber Security including Blockchain Technology)</option>
+                    <option value="Artificial Intelligence (AI) and Data Science">Artificial Intelligence (AI) and Data Science</option>
+                    <option value="Computer Science and Business Systems">Computer Science and Business Systems</option>
                   </select>
                 </div>
 
@@ -404,7 +409,7 @@ function ProfileSetup({ onComplete, onClose }) {
                   <input
                     type="text"
                     name="subjects"
-                    placeholder="e.g., Mathematics, Physics, Chemistry"
+                    placeholder="e.g., Mathematics, Physics, Programming, Data Structures"
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     value={formData.subjects.join(', ')}
                     onChange={handleChange}
@@ -419,7 +424,7 @@ function ProfileSetup({ onComplete, onClose }) {
                   <input
                     type="text"
                     name="interests"
-                    placeholder="e.g., Technology, Science, Music"
+                    placeholder="e.g., Programming, Machine Learning, Robotics, Innovation"
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     value={formData.interests.join(', ')}
                     onChange={handleChange}

@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { appointmentsAPI } from '../utils/api'
+import { useAuth } from '../context/AuthContext'
 
 function RequestAppointment({ isOpen, onClose, onSuccess }) {
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     type: '',
     requestedDate: '',
     requestedTime: '',
-    mode: 'In-person',
+    mode: 'In-Person',
     reason: '',
-    urgency: 'Medium'
+    priority: 'Medium'
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -28,13 +30,13 @@ function RequestAppointment({ isOpen, onClose, onSuccess }) {
 
     try {
       const appointmentData = {
+        reason: formData.reason,
         appointmentDetails: {
           type: formData.type,
-          requestedDate: formData.requestedDate,
+          requestedDate: new Date(formData.requestedDate),
           requestedTime: formData.requestedTime,
           mode: formData.mode,
-          reason: formData.reason,
-          urgency: formData.urgency
+          priority: formData.priority
         }
       }
 
@@ -48,9 +50,9 @@ function RequestAppointment({ isOpen, onClose, onSuccess }) {
           type: '',
           requestedDate: '',
           requestedTime: '',
-          mode: 'In-person',
+          mode: 'In-Person',
           reason: '',
-          urgency: 'Medium'
+          priority: 'Medium'
         })
       }
     } catch (error) {
@@ -94,11 +96,15 @@ function RequestAppointment({ isOpen, onClose, onSuccess }) {
                 onChange={handleChange}
               >
                 <option value="">Select Type</option>
-                <option value="Academic">Academic Counseling</option>
-                <option value="Career">Career Guidance</option>
-                <option value="Personal">Personal Counseling</option>
-                <option value="Psychological">Psychological Support</option>
-                <option value="Crisis">Crisis Intervention</option>
+                <option value="Academic Counseling">Academic Counseling</option>
+                <option value="Career Guidance">Career Guidance</option>
+                <option value="Personal Counseling">Personal Counseling</option>
+                <option value="Stress Management">Stress Management</option>
+                <option value="Study Skills">Study Skills</option>
+                <option value="College Preparation">College Preparation</option>
+                <option value="Behavioral Issues">Behavioral Issues</option>
+                <option value="Follow-up Session">Follow-up Session</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 
@@ -152,20 +158,20 @@ function RequestAppointment({ isOpen, onClose, onSuccess }) {
                 value={formData.mode}
                 onChange={handleChange}
               >
-                <option value="In-person">In-person</option>
-                <option value="Online">Online</option>
-                <option value="Phone">Phone</option>
+                <option value="In-Person">In-Person</option>
+                <option value="Video Call">Video Call</option>
+                <option value="Phone Call">Phone Call</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Urgency Level
+                Priority Level
               </label>
               <select
-                name="urgency"
+                name="priority"
                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                value={formData.urgency}
+                value={formData.priority}
                 onChange={handleChange}
               >
                 <option value="Low">Low</option>

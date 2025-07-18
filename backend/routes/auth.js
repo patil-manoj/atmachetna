@@ -95,7 +95,7 @@ router.post('/login', async (req, res) => {
         name: `${user.personalInfo.firstName} ${user.personalInfo.lastName}`,
         email: user.personalInfo.email,
         role: 'student',
-        studentId: user.studentId,
+        usn: user.usn,
         lastLogin: user.lastLogin
       };
     } else {
@@ -208,7 +208,7 @@ router.post('/signup', async (req, res) => {
         name: `${user.personalInfo.firstName} ${user.personalInfo.lastName}`,
         email: user.personalInfo.email,
         role: 'student',
-        studentId: user.studentId,
+        usn: user.usn,
         lastLogin: null,
         profileComplete: false // Flag to indicate profile needs completion
       };
@@ -288,7 +288,7 @@ router.get('/me', protect, async (req, res) => {
           name: `${user.personalInfo.firstName} ${user.personalInfo.lastName}`,
           email: user.personalInfo.email,
           role: 'student',
-          studentId: user.studentId,
+          usn: user.usn,
           lastLogin: user.lastLogin
         };
       }

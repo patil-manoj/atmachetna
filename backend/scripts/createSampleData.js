@@ -59,12 +59,12 @@ const createSampleData = async () => {
           }
         },
         academicInfo: {
-          currentClass: '12th Grade',
-          school: 'BMSCE',
-          board: 'CBSE',
-          subjects: ['Mathematics', 'Physics', 'Chemistry', 'English'],
-          interests: ['Technology', 'Science', 'Sports'],
-          careerGoals: 'Engineering'
+          currentClass: '4th Year',
+          school: 'Computer Science and Engineering',
+          board: 'VTU',
+          subjects: ['Data Structures', 'Algorithms', 'Database Systems', 'Software Engineering'],
+          interests: ['Programming', 'Web Development', 'Problem Solving'],
+          careerGoals: 'Software Engineer'
         },
         counselingInfo: {
           riskLevel: 'Low',
@@ -77,7 +77,6 @@ const createSampleData = async () => {
           }
         },
         password: 'student123', // Plain text - will be hashed by pre-save middleware
-        studentId: 'STU001',
         role: 'student',
         status: 'Active'
       },
@@ -97,12 +96,12 @@ const createSampleData = async () => {
           }
         },
         academicInfo: {
-          currentClass: '11th Grade',
-          school: 'Mount Carmel College',
-          board: 'State Board',
-          subjects: ['Biology', 'Chemistry', 'Physics', 'English'],
-          interests: ['Medicine', 'Research', 'Reading'],
-          careerGoals: 'Doctor'
+          currentClass: '3rd Year',
+          school: 'Bio Technology',
+          board: 'VTU',
+          subjects: ['Biochemistry', 'Molecular Biology', 'Genetics', 'Bioprocess Engineering'],
+          interests: ['Research', 'Biotechnology', 'Life Sciences'],
+          careerGoals: 'Biotechnology Researcher'
         },
         counselingInfo: {
           riskLevel: 'Medium',
@@ -115,7 +114,6 @@ const createSampleData = async () => {
           }
         },
         password: 'student123', // Plain text - will be hashed by pre-save middleware
-        studentId: 'STU002',
         role: 'student',
         status: 'Active'
       },
@@ -135,12 +133,12 @@ const createSampleData = async () => {
           }
         },
         academicInfo: {
-          currentClass: '12th Grade',
-          school: 'Delhi Public School',
-          board: 'CBSE',
-          subjects: ['Computer Science', 'Mathematics', 'Physics', 'English'],
-          interests: ['Programming', 'Gaming', 'Technology'],
-          careerGoals: 'Software Engineer'
+          currentClass: '2nd Year',
+          school: 'Artificial Intelligence and Machine Learning',
+          board: 'VTU',
+          subjects: ['Machine Learning', 'Python Programming', 'Statistics', 'Linear Algebra'],
+          interests: ['AI/ML', 'Data Science', 'Innovation'],
+          careerGoals: 'AI Engineer'
         },
         counselingInfo: {
           riskLevel: 'High',
@@ -153,7 +151,6 @@ const createSampleData = async () => {
           }
         },
         password: 'student123', // Plain text - will be hashed by pre-save middleware
-        studentId: 'STU003',
         role: 'student',
         status: 'Active'
       }

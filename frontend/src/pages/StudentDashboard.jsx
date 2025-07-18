@@ -46,7 +46,10 @@ function StudentDashboard() {
         studentData.personalInfo?.phone === '0000000000' ||
         !studentData.personalInfo?.dateOfBirth ||
         studentData.personalInfo?.dateOfBirth === '2000-01-01T00:00:00.000Z' ||
-        studentData.academicInfo?.currentClass === 'Not specified'
+        !studentData.academicInfo?.currentClass ||
+        studentData.academicInfo?.currentClass === 'Not specified' ||
+        !studentData.academicInfo?.school ||
+        studentData.academicInfo?.school === 'Not specified'
       )
       
       if (needsProfileSetup) {
@@ -363,10 +366,10 @@ function StudentDashboard() {
                   <label className="text-sm font-medium text-gray-600">Institution</label>
                   <p className="text-gray-900">{studentData?.academicInfo?.school}</p>
                 </div>
-                {studentData?.studentId && (
+                {studentData?.usn && (
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Student ID</label>
-                    <p className="text-gray-900">{studentData.studentId}</p>
+                    <label className="text-sm font-medium text-gray-600">USN</label>
+                    <p className="text-gray-900">{studentData.usn}</p>
                   </div>
                 )}
               </div>

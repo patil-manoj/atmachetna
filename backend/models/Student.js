@@ -61,7 +61,7 @@ const studentSchema = new mongoose.Schema({
     },
     board: {
       type: String,
-      enum: ['CBSE', 'ICSE', 'State Board', 'International', 'Other']
+      enum: ['CBSE', 'ICSE', 'State Board', 'VTU', 'International', 'Other']
     },
     subjects: [String],
     marks: {
@@ -111,10 +111,10 @@ const studentSchema = new mongoose.Schema({
     minlength: [6, 'Password must be at least 6 characters'],
     select: false // Don't return password by default
   },
-  studentId: {
+  usn: {
     type: String,
     unique: true,
-    sparse: true // Allows multiple documents without studentId
+    sparse: true // Allows multiple documents without usn
   },
   role: {
     type: String,
@@ -199,13 +199,13 @@ studentSchema.statics.getRecentRegistrations = function(days = 30) {
 studentSchema.set('toJSON', { virtuals: true });
 studentSchema.set('toObject', { virtuals: true });
 
-// Generate studentId before saving
+// Generate usn before saving
 studentSchema.pre('save', async function(next) {
-  // Generate studentId if not provided
-  if (this.isNew && !this.studentId) {
+  // Generate usn if not provided
+  if (this.isNew && !this.usn) {
     const year = new Date().getFullYear();
     const count = await this.constructor.countDocuments({});
-    this.studentId = `STU${year}${String(count + 1).padStart(4, '0')}`;
+    this.usn = `STU${year}${String(count + 1).padStart(4, '0')}`;
   }
   
   next();

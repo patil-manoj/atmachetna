@@ -125,7 +125,7 @@ router.get('/', protect, authorize('admin', 'counsellor'), async (req, res) => {
         { 'personalInfo.lastName': { $regex: search, $options: 'i' } },
         { 'personalInfo.email': { $regex: search, $options: 'i' } },
         { 'personalInfo.phone': { $regex: search, $options: 'i' } },
-        { studentId: { $regex: search, $options: 'i' } }
+        { usn: { $regex: search, $options: 'i' } }
       ];
     }
 
@@ -229,7 +229,7 @@ router.post('/', protect, async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: 'Student with this email or student ID already exists'
+        message: 'Student with this email or USN already exists'
       });
     }
 

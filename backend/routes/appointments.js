@@ -61,7 +61,7 @@ router.get('/', protect, async (req, res) => {
       .sort(sortOptions)
       .skip(skip)
       .limit(limitNum)
-      .populate('student', 'personalInfo.firstName personalInfo.lastName personalInfo.email personalInfo.phone studentId')
+      .populate('student', 'personalInfo.firstName personalInfo.lastName personalInfo.email personalInfo.phone usn')
       .populate('counsellor', 'name email')
       .lean();
 
@@ -131,16 +131,23 @@ router.post('/', protect, async (req, res) => {
       createdBy: req.user.id
     };
 
+    // If user is a student, set them as the student for the appointment
+    if (req.user.role === 'student') {
+      appointmentData.student = req.user.id;
+    }
+
     const appointment = await Appointment.create(appointmentData);
 
-    // Add appointment to student's appointments array
-    await Student.findByIdAndUpdate(
-      appointmentData.student,
-      { $push: { appointments: appointment._id } }
-    );
+    // Add appointment to student's appointments array if student exists
+    if (appointmentData.student) {
+      await Student.findByIdAndUpdate(
+        appointmentData.student,
+        { $push: { appointments: appointment._id } }
+      );
+    }
 
     const populatedAppointment = await Appointment.findById(appointment._id)
-      .populate('student', 'name email phone studentId');
+      .populate('student', 'personalInfo.firstName personalInfo.lastName personalInfo.email personalInfo.phone usn');
 
     res.status(201).json({
       success: true,
@@ -173,7 +180,7 @@ router.put('/:id', protect, async (req, res) => {
         new: true,
         runValidators: true
       }
-    ).populate('student', 'name email phone studentId');
+    ).populate('student', 'name email phone usn');
 
     if (!appointment) {
       return res.status(404).json({
@@ -242,7 +249,7 @@ router.get('/status/pending', protect, async (req, res) => {
   try {
     const pendingAppointments = await Appointment.find({ status: 'pending' })
       .sort({ createdAt: -1 })
-      .populate('student', 'name email phone studentId')
+      .populate('student', 'name email phone usn')
       .lean();
 
     res.status(200).json({
@@ -278,7 +285,7 @@ router.patch('/:id/confirm', protect, async (req, res) => {
         confirmedAt: new Date()
       },
       { new: true }
-    ).populate('student', 'name email phone studentId');
+    ).populate('student', 'name email phone usn');
 
     if (!appointment) {
       return res.status(404).json({
@@ -321,7 +328,7 @@ router.patch('/:id/complete', protect, async (req, res) => {
         completedAt: new Date()
       },
       { new: true }
-    ).populate('student', 'name email phone studentId');
+    ).populate('student', 'name email phone usn');
 
     if (!appointment) {
       return res.status(404).json({
