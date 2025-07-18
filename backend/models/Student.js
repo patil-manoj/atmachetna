@@ -199,6 +199,18 @@ studentSchema.statics.getRecentRegistrations = function(days = 30) {
 studentSchema.set('toJSON', { virtuals: true });
 studentSchema.set('toObject', { virtuals: true });
 
+// Generate studentId before saving
+studentSchema.pre('save', async function(next) {
+  // Generate studentId if not provided
+  if (this.isNew && !this.studentId) {
+    const year = new Date().getFullYear();
+    const count = await this.constructor.countDocuments({});
+    this.studentId = `STU${year}${String(count + 1).padStart(4, '0')}`;
+  }
+  
+  next();
+});
+
 // Hash password before saving
 studentSchema.pre('save', async function(next) {
   if (!this.isModified('password') || !this.password) {

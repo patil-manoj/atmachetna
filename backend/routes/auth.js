@@ -127,16 +127,24 @@ router.post('/login', async (req, res) => {
 });
 
 /**
- * @desc    Register new admin/counselor
+ * @desc    Register new admin/counselor or student
  * @route   POST /api/auth/signup
  * @access  Public (but should be restricted in production)
  */
 router.post('/signup', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, userType = 'admin' } = req.body;
 
-    // Validation
-    if (!name || !email || !password) {
+    // Validation - for students, only email and password are required
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email and password'
+      });
+    }
+
+    // For admin/counsellor, name is still required
+    if (userType !== 'student' && !name) {
       return res.status(400).json({
         success: false,
         message: 'Please provide name, email, and password'
@@ -150,30 +158,94 @@ router.post('/signup', async (req, res) => {
       });
     }
 
-    // Check if admin already exists
-    const existingAdmin = await Admin.findOne({ email });
+    let user;
+    let userData;
 
-    if (existingAdmin) {
-      return res.status(400).json({
-        success: false,
-        message: 'User with this email already exists'
+    if (userType === 'student') {
+      // Check if student already exists
+      const existingStudent = await Student.findOne({ 'personalInfo.email': email });
+
+      if (existingStudent) {
+        return res.status(400).json({
+          success: false,
+          message: 'User with this email already exists'
+        });
+      }
+
+      // Parse name into first and last name (if provided, otherwise use email prefix)
+      let firstName, lastName;
+      if (name && name.trim()) {
+        const nameParts = name.trim().split(' ');
+        firstName = nameParts[0];
+        lastName = nameParts.slice(1).join(' ') || '';
+      } else {
+        firstName = email.split('@')[0];
+        lastName = '';
+      }
+
+      // Create new student with minimal data - profile setup will happen later
+      user = await Student.create({
+        personalInfo: {
+          firstName,
+          lastName: lastName || 'Student',
+          email,
+          phone: '0000000000', // Placeholder - will be updated in profile setup
+          dateOfBirth: new Date('2000-01-01'), // Placeholder - will be updated in profile setup
+          gender: 'Other' // Placeholder - will be updated in profile setup
+        },
+        academicInfo: {
+          currentClass: 'Not specified',
+          school: 'Not specified'
+        },
+        password,
+        role: 'student',
+        isVerified: false,
+        status: 'Active'
       });
-    }
 
-    // Create new admin
-    const admin = await Admin.create({
-      name,
-      email,
-      password, // Password will be hashed by the pre-save middleware
-      role: 'counsellor',
-      isActive: true
-    });
+      userData = {
+        id: user._id,
+        name: `${user.personalInfo.firstName} ${user.personalInfo.lastName}`,
+        email: user.personalInfo.email,
+        role: 'student',
+        studentId: user.studentId,
+        lastLogin: null,
+        profileComplete: false // Flag to indicate profile needs completion
+      };
+    } else {
+      // Check if admin already exists
+      const existingAdmin = await Admin.findOne({ email });
+
+      if (existingAdmin) {
+        return res.status(400).json({
+          success: false,
+          message: 'User with this email already exists'
+        });
+      }
+
+      // Create new admin
+      user = await Admin.create({
+        name,
+        email,
+        password, // Password will be hashed by the pre-save middleware
+        role: 'counsellor',
+        isActive: true
+      });
+
+      userData = {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        lastLogin: null
+      };
+    }
 
     // Create token
     const payload = {
-      id: admin._id,
-      email: admin.email,
-      role: admin.role
+      id: user._id,
+      email: userType === 'student' ? user.personalInfo.email : user.email,
+      role: user.role || userType
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -185,13 +257,8 @@ router.post('/signup', async (req, res) => {
       message: 'Account created successfully',
       data: {
         token,
-        admin: {
-          id: admin._id,
-          name: admin.name,
-          email: admin.email,
-          role: admin.role,
-          lastLogin: null
-        }
+        user: userData,
+        userType
       }
     });
   } catch (error) {

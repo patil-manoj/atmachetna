@@ -56,18 +56,32 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const signup = async (name, email, password) => {
+  const signup = async (email, password) => {
     try {
       // Determine user type based on email domain
       const isAdminEmail = email.toLowerCase().endsWith('@atmachetna.com');
       const userType = isAdminEmail ? 'admin' : 'student';
       
-      const response = await authAPI.signup({ name, email, password, userType })
+      console.log('Signup attempt:', { email, userType });
+      
+      // Prepare signup data - for students, we only send email and password
+      const signupData = { email, password, userType };
+      
+      // For admin/counsellor, include name
+      if (isAdminEmail) {
+        signupData.name = 'Admin User';
+      }
+      
+      const response = await authAPI.signup(signupData)
+      console.log('Signup response:', response.data);
+      
       const { token, user } = response.data.data
       localStorage.setItem('token', token)
       setUser(user)
       return { success: true }
     } catch (error) {
+      console.error('Signup error:', error);
+      console.error('Error response:', error.response?.data);
       return { 
         success: false, 
         error: error.response?.data?.message || 'Signup failed' 

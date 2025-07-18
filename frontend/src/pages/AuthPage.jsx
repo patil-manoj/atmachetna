@@ -6,7 +6,6 @@ import { EyeIcon, EyeSlashIcon, UserIcon, UserPlusIcon } from '@heroicons/react/
 function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -29,13 +28,7 @@ function AuthPage() {
     setError('')
 
     if (!isLogin) {
-      // Signup validation
-      if (!formData.name.trim()) {
-        setError('Name is required')
-        setLoading(false)
-        return
-      }
-
+      // Signup validation - only require email and password
       if (formData.password !== formData.confirmPassword) {
         setError('Passwords do not match')
         setLoading(false)
@@ -48,16 +41,11 @@ function AuthPage() {
         return
       }
 
-      // Attempt signup (this will fail until backend supports it)
-      const result = await signup(formData.name, formData.email, formData.password)
+      // Attempt signup
+      const result = await signup(formData.email, formData.password)
       
       if (!result.success) {
-        // Show specific error message about signup not being available
-        if (result.error.includes('404') || result.error.includes('not found')) {
-          setError('Signup is currently not available. Please contact the administrator to create an account.')
-        } else {
-          setError(result.error)
-        }
+        setError(result.error)
       }
       setLoading(false)
       return
@@ -83,7 +71,6 @@ function AuthPage() {
     setIsLogin(!isLogin)
     setError('')
     setFormData({
-      name: '',
       email: '',
       password: '',
       confirmPassword: ''
@@ -228,32 +215,6 @@ function AuthPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name Field - Only for signup */}
-              {!isLogin && (
-                <div className="space-y-2">
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700">
-                    Full Name
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <input
-                      id="name"
-                      name="name"
-                      type="text"
-                      required={!isLogin}
-                      className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white shadow-sm"
-                      placeholder="Enter your full name"
-                      value={formData.name}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-              )}
-
               {/* Email Field */}
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-sm font-semibold text-gray-700">

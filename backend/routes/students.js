@@ -43,6 +43,63 @@ router.get('/me', protect, async (req, res) => {
 });
 
 /**
+ * @desc    Update student's own profile
+ * @route   PUT /api/students/me
+ * @access  Private (Student only)
+ */
+router.put('/me', protect, async (req, res) => {
+  try {
+    if (req.user.role !== 'student') {
+      return res.status(403).json({
+        success: false,
+        message: 'This endpoint is only accessible to students'
+      });
+    }
+
+    const student = await Student.findByIdAndUpdate(
+      req.user.id,
+      {
+        ...req.body,
+        updatedAt: new Date()
+      },
+      {
+        new: true,
+        runValidators: true
+      }
+    );
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student profile not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: { student }
+    });
+  } catch (error) {
+    console.error('Update student profile error:', error);
+    
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating student profile'
+    });
+  }
+});
+
+/**
  * @desc    Get all students (Admin/Counsellor only)
  * @route   GET /api/students
  * @access  Private
@@ -55,8 +112,7 @@ router.get('/', protect, authorize('admin', 'counsellor'), async (req, res) => {
       search = '',
       sortBy = 'createdAt',
       sortOrder = 'desc',
-      status = '',
-      priority = ''
+      status = ''
     } = req.query;
 
     // Build query
@@ -65,9 +121,10 @@ router.get('/', protect, authorize('admin', 'counsellor'), async (req, res) => {
     // Search functionality
     if (search) {
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } },
+        { 'personalInfo.firstName': { $regex: search, $options: 'i' } },
+        { 'personalInfo.lastName': { $regex: search, $options: 'i' } },
+        { 'personalInfo.email': { $regex: search, $options: 'i' } },
+        { 'personalInfo.phone': { $regex: search, $options: 'i' } },
         { studentId: { $regex: search, $options: 'i' } }
       ];
     }
@@ -75,11 +132,6 @@ router.get('/', protect, authorize('admin', 'counsellor'), async (req, res) => {
     // Filter by status
     if (status) {
       query.status = status;
-    }
-
-    // Filter by priority
-    if (priority) {
-      query.priority = priority;
     }
 
     // Pagination
@@ -96,7 +148,6 @@ router.get('/', protect, authorize('admin', 'counsellor'), async (req, res) => {
       .sort(sortOptions)
       .skip(skip)
       .limit(limitNum)
-      .populate('appointments', 'date time status type')
       .lean();
 
     // Get total count for pagination
@@ -131,7 +182,6 @@ router.get('/', protect, authorize('admin', 'counsellor'), async (req, res) => {
 router.get('/:id', protect, async (req, res) => {
   try {
     const student = await Student.findById(req.params.id)
-      .populate('appointments')
       .lean();
 
     if (!student) {
@@ -269,9 +319,9 @@ router.delete('/:id', protect, async (req, res) => {
 router.get('/stats/overview', protect, async (req, res) => {
   try {
     const totalStudents = await Student.countDocuments();
-    const activeStudents = await Student.countDocuments({ status: 'active' });
-    const inactiveStudents = await Student.countDocuments({ status: 'inactive' });
-    const highPriorityStudents = await Student.countDocuments({ priority: 'high' });
+    const activeStudents = await Student.countDocuments({ status: 'Active' });
+    const inactiveStudents = await Student.countDocuments({ status: 'Inactive' });
+    const graduatedStudents = await Student.countDocuments({ status: 'Graduated' });
 
     res.status(200).json({
       success: true,
@@ -279,7 +329,7 @@ router.get('/stats/overview', protect, async (req, res) => {
         total: totalStudents,
         active: activeStudents,
         inactive: inactiveStudents,
-        highPriority: highPriorityStudents
+        graduated: graduatedStudents
       }
     });
   } catch (error) {

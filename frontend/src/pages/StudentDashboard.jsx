@@ -10,6 +10,10 @@ import {
   PlusIcon
 } from '@heroicons/react/24/outline'
 import { appointmentsAPI, studentsAPI, statsAPI } from '../utils/api'
+import ProfileSetup from '../components/ProfileSetup'
+import RequestAppointment from '../components/RequestAppointment'
+import Resources from '../components/Resources'
+import UpdateProfile from '../components/UpdateProfile'
 
 function StudentDashboard() {
   const { user, logout } = useAuth()
@@ -23,12 +27,33 @@ function StudentDashboard() {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showProfileSetup, setShowProfileSetup] = useState(false)
+  const [showRequestAppointment, setShowRequestAppointment] = useState(false)
+  const [showResources, setShowResources] = useState(false)
+  const [showUpdateProfile, setShowUpdateProfile] = useState(false)
 
   useEffect(() => {
     fetchStudentData()
     fetchAppointments()
     fetchStats()
   }, [])
+
+  // Check if profile setup is needed after student data is loaded
+  useEffect(() => {
+    if (studentData) {
+      const needsProfileSetup = (
+        !studentData.personalInfo?.phone || 
+        studentData.personalInfo?.phone === '0000000000' ||
+        !studentData.personalInfo?.dateOfBirth ||
+        studentData.personalInfo?.dateOfBirth === '2000-01-01T00:00:00.000Z' ||
+        studentData.academicInfo?.currentClass === 'Not specified'
+      )
+      
+      if (needsProfileSetup) {
+        setShowProfileSetup(true)
+      }
+    }
+  }, [studentData])
 
   const fetchStudentData = async () => {
     try {
@@ -48,19 +73,20 @@ function StudentDashboard() {
       const response = await appointmentsAPI.getAll()
       
       if (response.data.success) {
-        setAppointments(response.data.data.appointments)
+        const appointmentsData = response.data.data.appointments || []
+        setAppointments(appointmentsData)
         
         // Calculate stats from fetched appointments
-        const completed = response.data.data.appointments.filter(apt => apt.status === 'Completed').length
-        const upcoming = response.data.data.appointments.filter(apt => 
+        const completed = appointmentsData.filter(apt => apt.status === 'Completed').length
+        const upcoming = appointmentsData.filter(apt => 
           apt.status === 'Confirmed' && new Date(apt.appointmentDetails.requestedDate) > new Date()
         ).length
         
         setStats({
-          totalAppointments: response.data.data.appointments.length,
+          totalAppointments: appointmentsData.length,
           completedAppointments: completed,
           upcomingAppointments: upcoming,
-          lastAppointment: response.data.data.appointments
+          lastAppointment: appointmentsData
             .filter(apt => apt.status === 'Completed')
             .sort((a, b) => new Date(b.appointmentDetails.requestedDate) - new Date(a.appointmentDetails.requestedDate))[0]
         })
@@ -107,6 +133,39 @@ function StudentDashboard() {
       default:
         return 'text-gray-600 bg-gray-50 border-gray-200'
     }
+  }
+
+  // Event handlers for quick actions
+  const handleRequestAppointment = () => {
+    setShowRequestAppointment(true)
+  }
+
+  const handleViewResources = () => {
+    setShowResources(true)
+  }
+
+  const handleUpdateProfile = () => {
+    setShowUpdateProfile(true)
+  }
+
+  const handleProfileSetupComplete = (updatedData) => {
+    setStudentData(updatedData)
+    setShowProfileSetup(false)
+    // Refresh data after profile update
+    fetchStudentData()
+  }
+
+  const handleAppointmentSuccess = () => {
+    setShowRequestAppointment(false)
+    // Refresh appointments after successful request
+    fetchAppointments()
+  }
+
+  const handleProfileUpdateSuccess = (updatedData) => {
+    setStudentData(updatedData)
+    setShowUpdateProfile(false)
+    // Refresh data after profile update
+    fetchStudentData()
   }
 
   if (loading) {
@@ -319,19 +378,28 @@ function StudentDashboard() {
                 <h3 className="text-lg font-medium text-gray-900">Quick Actions</h3>
               </div>
               <div className="p-6 space-y-3">
-                <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={handleRequestAppointment}
+                  className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
                   <div className="flex items-center">
                     <CalendarDaysIcon className="h-5 w-5 text-blue-600 mr-3" />
                     <span className="text-sm font-medium">Request New Appointment</span>
                   </div>
                 </button>
-                <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={handleViewResources}
+                  className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
                   <div className="flex items-center">
                     <BookOpenIcon className="h-5 w-5 text-green-600 mr-3" />
                     <span className="text-sm font-medium">View Resources</span>
                   </div>
                 </button>
-                <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={handleUpdateProfile}
+                  className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
                   <div className="flex items-center">
                     <UserIcon className="h-5 w-5 text-purple-600 mr-3" />
                     <span className="text-sm font-medium">Update Profile</span>
@@ -342,6 +410,40 @@ function StudentDashboard() {
           </div>
         </div>
       </main>
+      
+      {/* Modal Components */}
+      {showProfileSetup && (
+        <ProfileSetup 
+          onClose={() => setShowProfileSetup(false)}
+          onComplete={handleProfileSetupComplete}
+          student={studentData}
+        />
+      )}
+      
+      {showRequestAppointment && (
+        <RequestAppointment 
+          isOpen={showRequestAppointment}
+          onClose={() => setShowRequestAppointment(false)}
+          onSuccess={handleAppointmentSuccess}
+          student={studentData}
+        />
+      )}
+      
+      {showResources && (
+        <Resources 
+          isOpen={showResources}
+          onClose={() => setShowResources(false)}
+        />
+      )}
+      
+      {showUpdateProfile && (
+        <UpdateProfile 
+          isOpen={showUpdateProfile}
+          onClose={() => setShowUpdateProfile(false)}
+          onSuccess={handleProfileUpdateSuccess}
+          student={studentData}
+        />
+      )}
     </div>
   )
 }

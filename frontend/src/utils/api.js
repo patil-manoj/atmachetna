@@ -51,6 +51,7 @@ export const studentsAPI = {
   getMe: () => api.get('/students/me'), // For student to get their own profile
   create: (data) => api.post('/students', data),
   update: (id, data) => api.put(`/students/${id}`, data),
+  updateProfile: (data) => api.put('/students/me', data), // For student to update their own profile
   delete: (id) => api.delete(`/students/${id}`),
   getStats: () => api.get('/students/stats/overview'),
 }

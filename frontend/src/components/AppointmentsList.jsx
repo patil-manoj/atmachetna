@@ -27,7 +27,7 @@ function AppointmentsList() {
       const response = await appointmentsAPI.getAll()
       
       if (response.data.success) {
-        setAppointments(response.data.data || [])
+        setAppointments(response.data.data.appointments || [])
       } else {
         setError('Failed to load appointments')
       }
@@ -94,7 +94,7 @@ function AppointmentsList() {
     }
   }
 
-  const filteredAppointments = appointments.filter(appointment => {
+  const filteredAppointments = (appointments || []).filter(appointment => {
     const matchesSearch = 
       appointment.student?.personalInfo?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       appointment.student?.personalInfo?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
